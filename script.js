@@ -1,79 +1,83 @@
 // Function to handle login
 document.getElementById('login-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent default form submission behavior
-
+    event.preventDefault();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
-
-    const savedUser = localStorage.getItem(username);
-    if (savedUser) {
-        const savedPassword = JSON.parse(savedUser).password;
-        if (savedPassword === password) {
-            alert('Login successful!');
-            // For demonstration purposes, redirecting to a success page
-            window.location.href = 'home.html';
-            localStorage.setItem('loggedInUser', username); // Store logged in user in localStorage
-        } else {
-            document.getElementById('login-error').textContent = 'Invalid password';
-        }
-    } else {
-        document.getElementById('login-error').textContent = 'User not found';
-    }
+    // Fetch user data from a JSON file in your repository
+    fetch('users.json')
+        .then(response => response.json())
+        .then(data => {
+            const user = data.find(user => user.username === username && user.password === password);
+            if (user) {
+                alert('Login successful!');
+                localStorage.setItem('loggedInUser', username);
+                window.location.href = 'home.html';
+            } else {
+                document.getElementById('login-error').textContent = 'Invalid username or password';
+            }
+        })
+        .catch(error => console.error('Error:', error));
 });
 
-// Function to handle sign up
-document.getElementById('signup-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent default form submission behavior
-
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-
-    const savedUser = localStorage.getItem(username);
-    if (savedUser) {
-        document.getElementById('signup-error').textContent = 'Username already exists';
-    } else {
-        localStorage.setItem(username, JSON.stringify({ username, password }));
-        alert('Sign up successful! Please log in.');
-        window.location.href = 'index.html'; // Redirect to login page after sign up
-    }
-});
+// Function to handle logout
+function logout() {
+    localStorage.removeItem('loggedInUser');
+}
 
 // Function to display posts
 function displayPosts() {
     const postFeed = document.getElementById('post-feed');
     postFeed.innerHTML = ''; // Clear existing posts
-
-    // Get the logged in user from localStorage
+    // Get the logged in user from local storage
     const loggedInUser = localStorage.getItem('loggedInUser');
-    
-    // Retrieve all posts from localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key !== 'loggedInUser') { // Exclude the loggedInUser key
-            const post = JSON.parse(localStorage.getItem(key));
-            const postElement = document.createElement('div');
-            postElement.classList.add('post');
-            postElement.innerHTML = `
-                <p><strong>${post.username}:</strong> ${post.content}</p>
-            `;
-            postFeed.appendChild(postElement);
-        }
-    }
+    // Fetch posts from a JSON file in your repository
+    fetch('posts.json')
+        .then(response => response.json())
+        .then(posts => {
+            // Filter posts by the logged in user
+            const userPosts = posts.filter(post => post.username === loggedInUser);
+            // Display filtered posts
+            userPosts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.classList.add('post');
+                postElement.innerHTML = `
+                    <p><strong>${post.username}:</strong> ${post.content}</p>
+                `;
+                postFeed.appendChild(postElement);
+            });
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 // Function to submit a new post
 function submitPost() {
     const postContent = document.getElementById('post-content').value.trim();
     if (postContent) {
-        // Get the logged in user from localStorage
+        // Get the logged in user from local storage
         const loggedInUser = localStorage.getItem('loggedInUser');
-        
-        // Store the new post in localStorage
-        const timestamp = Date.now(); // Generate unique timestamp for post key
-        localStorage.setItem(timestamp, JSON.stringify({ username: loggedInUser, content: postContent }));
-        
-        displayPosts(); // Update post feed
-        document.getElementById('post-content').value = '';
+        // Construct new post object
+        const newPost = { username: loggedInUser, content: postContent };
+        // Fetch posts from a JSON file in your repository
+        fetch('posts.json')
+            .then(response => response.json())
+            .then(posts => {
+                // Add new post to existing posts
+                posts.push(newPost);
+                // Save updated posts back to the JSON file
+                return fetch('posts.json', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(posts)
+                });
+            })
+            .then(() => {
+                alert('Post submitted successfully!');
+                displayPosts(); // Update post feed
+                document.getElementById('post-content').value = '';
+            })
+            .catch(error => console.error('Error:', error));
     } else {
         alert('Please enter a post content.');
     }
