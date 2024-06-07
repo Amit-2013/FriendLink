@@ -52,3 +52,7 @@ main {
     border-bottom: 1px solid #ccc;
     padding-bottom: 1rem;
 }
+
+.post p {
+    margin: 0;
+}
