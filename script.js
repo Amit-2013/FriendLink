@@ -1,31 +1,37 @@
-// Load existing posts from local storage when the page loads
-window.onload = function() {
-    var storedPosts = localStorage.getItem('posts');
-    if (storedPosts) {
-        try {
-            var postFeed = document.getElementById('post-feed');
-            postFeed.innerHTML = storedPosts;
-        } catch (error) {
-            console.error('Error loading posts from local storage:', error);
-        }
-    }
+// Simulated posts data (replace with actual data if available)
+const posts = [
+    { username: 'User1', content: 'This is post 1' },
+    { username: 'User2', content: 'This is post 2' },
+    { username: 'User3', content: 'This is post 3' }
+];
+
+// Function to display posts
+function displayPosts() {
+    const postFeed = document.getElementById('post-feed');
+    postFeed.innerHTML = ''; // Clear existing posts
+
+    posts.forEach(post => {
+        const postElement = document.createElement('div');
+        postElement.classList.add('post');
+        postElement.innerHTML = `
+            <p><strong>${post.username}:</strong> ${post.content}</p>
+        `;
+        postFeed.appendChild(postElement);
+    });
 }
 
+// Function to submit a new post
 function submitPost() {
-    var postContent = document.getElementById('post-content').value;
-    if (postContent.trim() !== '') {
-        var postFeed = document.getElementById('post-feed');
-        var post = document.createElement('div');
-        post.className = 'post';
-        post.innerHTML = '<p>' + postContent + '</p>';
-        postFeed.insertBefore(post, postFeed.firstChild);
+    const postContent = document.getElementById('post-content').value.trim();
+    if (postContent) {
+        // Simulate adding a new post (replace with actual WebSocket logic)
+        posts.unshift({ username: 'User', content: postContent });
+        displayPosts();
         document.getElementById('post-content').value = '';
-
-        // Save posts to local storage
-        try {
-            localStorage.setItem('posts', postFeed.innerHTML);
-        } catch (error) {
-            console.error('Error saving posts to local storage:', error);
-        }
+    } else {
+        alert('Please enter a post content.');
     }
 }
+
+// Initial display of posts
+displayPosts();
