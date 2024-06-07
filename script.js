@@ -12,6 +12,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
             alert('Login successful!');
             // For demonstration purposes, redirecting to a success page
             window.location.href = 'home.html';
+            localStorage.setItem('loggedInUser', username); // Store logged in user in localStorage
         } else {
             document.getElementById('login-error').textContent = 'Invalid password';
         }
@@ -36,3 +37,47 @@ document.getElementById('signup-form').addEventListener('submit', function(event
         window.location.href = 'index.html'; // Redirect to login page after sign up
     }
 });
+
+// Function to display posts
+function displayPosts() {
+    const postFeed = document.getElementById('post-feed');
+    postFeed.innerHTML = ''; // Clear existing posts
+
+    // Get the logged in user from localStorage
+    const loggedInUser = localStorage.getItem('loggedInUser');
+    
+    // Retrieve all posts from localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key !== 'loggedInUser') { // Exclude the loggedInUser key
+            const post = JSON.parse(localStorage.getItem(key));
+            const postElement = document.createElement('div');
+            postElement.classList.add('post');
+            postElement.innerHTML = `
+                <p><strong>${post.username}:</strong> ${post.content}</p>
+            `;
+            postFeed.appendChild(postElement);
+        }
+    }
+}
+
+// Function to submit a new post
+function submitPost() {
+    const postContent = document.getElementById('post-content').value.trim();
+    if (postContent) {
+        // Get the logged in user from localStorage
+        const loggedInUser = localStorage.getItem('loggedInUser');
+        
+        // Store the new post in localStorage
+        const timestamp = Date.now(); // Generate unique timestamp for post key
+        localStorage.setItem(timestamp, JSON.stringify({ username: loggedInUser, content: postContent }));
+        
+        displayPosts(); // Update post feed
+        document.getElementById('post-content').value = '';
+    } else {
+        alert('Please enter a post content.');
+    }
+}
+
+// Initial display of posts
+displayPosts();
