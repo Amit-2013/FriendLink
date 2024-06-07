@@ -1,37 +1,38 @@
-// Simulated posts data (replace with actual data if available)
-const posts = [
-    { username: 'User1', content: 'This is post 1' },
-    { username: 'User2', content: 'This is post 2' },
-    { username: 'User3', content: 'This is post 3' }
-];
+// Function to handle login
+document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission behavior
 
-// Function to display posts
-function displayPosts() {
-    const postFeed = document.getElementById('post-feed');
-    postFeed.innerHTML = ''; // Clear existing posts
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
 
-    posts.forEach(post => {
-        const postElement = document.createElement('div');
-        postElement.classList.add('post');
-        postElement.innerHTML = `
-            <p><strong>${post.username}:</strong> ${post.content}</p>
-        `;
-        postFeed.appendChild(postElement);
-    });
-}
-
-// Function to submit a new post
-function submitPost() {
-    const postContent = document.getElementById('post-content').value.trim();
-    if (postContent) {
-        // Simulate adding a new post (replace with actual WebSocket logic)
-        posts.unshift({ username: 'User', content: postContent });
-        displayPosts();
-        document.getElementById('post-content').value = '';
+    const savedUser = localStorage.getItem(username);
+    if (savedUser) {
+        const savedPassword = JSON.parse(savedUser).password;
+        if (savedPassword === password) {
+            alert('Login successful!');
+            // For demonstration purposes, redirecting to a success page
+            window.location.href = 'home.html';
+        } else {
+            document.getElementById('login-error').textContent = 'Invalid password';
+        }
     } else {
-        alert('Please enter a post content.');
+        document.getElementById('login-error').textContent = 'User not found';
     }
-}
+});
 
-// Initial display of posts
-displayPosts();
+// Function to handle sign up
+document.getElementById('signup-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission behavior
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    const savedUser = localStorage.getItem(username);
+    if (savedUser) {
+        document.getElementById('signup-error').textContent = 'Username already exists';
+    } else {
+        localStorage.setItem(username, JSON.stringify({ username, password }));
+        alert('Sign up successful! Please log in.');
+        window.location.href = 'index.html'; // Redirect to login page after sign up
+    }
+});
