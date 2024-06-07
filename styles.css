@@ -1,0 +1,54 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 1rem;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+main {
+    padding: 2rem;
+}
+
+#post-form {
+    margin-bottom: 1rem;
+}
+
+#post-content {
+    width: 100%;
+    height: 100px;
+    resize: none;
+    margin-bottom: 1rem;
+}
+
+#post-feed {
+    border: 1px solid #ccc;
+    padding: 1rem;
+}
+
+.post {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 1rem;
+}
