@@ -2,8 +2,12 @@
 window.onload = function() {
     var storedPosts = localStorage.getItem('posts');
     if (storedPosts) {
-        var postFeed = document.getElementById('post-feed');
-        postFeed.innerHTML = storedPosts;
+        try {
+            var postFeed = document.getElementById('post-feed');
+            postFeed.innerHTML = storedPosts;
+        } catch (error) {
+            console.error('Error loading posts from local storage:', error);
+        }
     }
 }
 
@@ -18,6 +22,10 @@ function submitPost() {
         document.getElementById('post-content').value = '';
 
         // Save posts to local storage
-        localStorage.setItem('posts', postFeed.innerHTML);
+        try {
+            localStorage.setItem('posts', postFeed.innerHTML);
+        } catch (error) {
+            console.error('Error saving posts to local storage:', error);
+        }
     }
 }
