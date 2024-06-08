@@ -15,44 +15,8 @@
       <button type="submit">Sign Up</button>
     </form>
     <p id="signup-error" class="error-message"></p>
-    <p>Already have an account? <a href="index.html">Login</a></p>
+    <p>Already have an account? <a href="index.html">Log In</a></p>
   </main>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAeg5nCDJnwmsSPgfV4YcOrS1NA8OjgeYA",
-      authDomain: "friendlink12.firebaseapp.com",
-      projectId: "friendlink12",
-      storageBucket: "friendlink12.appspot.com",
-      messagingSenderId: "8176686531",
-      appId: "1:8176686531:web:2bb7d6e805fc89b59c9976",
-      measurementId: "G-7SHZZRVELE"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // Sign Up functionality
-    document.getElementById('signup-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          alert('Sign up successful! Please log in.');
-          window.location.href = 'index.html';
-        })
-        .catch((error) => {
-          document.getElementById('signup-error').textContent = error.message;
-        });
-    });
-  </script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
