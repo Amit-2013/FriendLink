@@ -7,108 +7,16 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Welcome to Your Dashboard</h1>
-    <nav>
-      <ul>
-        <li><a href="#">Profile</a></li>
-        <li><a href="#">Settings</a></li>
-        <li><a href="index.html" onclick="logout()">Logout</a></li>
-      </ul>
-    </nav>
-  </header>
-
   <main>
-    <section id="post-form">
-      <textarea id="post-content" placeholder="What's on your mind?"></textarea>
-      <button onclick="submitPost()">Post</button>
-    </section>
-
-    <section id="post-feed">
-      <!-- Posts will be dynamically added here -->
-    </section>
+    <h1>Home</h1>
+    <div id="user-info"></div>
+    <form id="post-form">
+      <textarea id="post-content" placeholder="What's on your mind?" required></textarea>
+      <button type="submit">Post</button>
+    </form>
+    <div id="posts"></div>
+    <button id="logout">Logout</button>
   </main>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAeg5nCDJnwmsSPgfV4YcOrS1NA8OjgeYA",
-      authDomain: "friendlink12.firebaseapp.com",
-      projectId: "friendlink12",
-      storageBucket: "friendlink12.appspot.com",
-      messagingSenderId: "8176686531",
-      appId: "1:8176686531:web:2bb7d6e805fc89b59c9976",
-      measurementId: "G-7SHZZRVELE"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Logout functionality
-    function logout() {
-      signOut(auth).then(() => {
-        localStorage.removeItem('loggedInUser');
-        window.location.href = 'index.html';
-      }).catch((error) => {
-        console.error('Logout Error:', error);
-      });
-    }
-
-    // Submit post functionality
-    async function submitPost() {
-      const postContent = document.getElementById('post-content').value.trim();
-      if (postContent) {
-        const user = auth.currentUser;
-        if (user) {
-          await addDoc(collection(db, 'posts'), {
-            username: user.email,
-            content: postContent,
-            timestamp: new Date()
-          });
-          alert('Post submitted successfully!');
-          displayPosts();
-          document.getElementById('post-content').value = '';
-        } else {
-          alert('You need to log in to post.');
-        }
-      } else {
-        alert('Please enter post content.');
-      }
-    }
-
-    // Display posts functionality
-    async function displayPosts() {
-      const user = auth.currentUser;
-      if (user) {
-        const q = query(collection(db, 'posts'), where('username', '==', user.email));
-        const querySnapshot = await getDocs(q);
-        const postFeed = document.getElementById('post-feed');
-        postFeed.innerHTML = ''; // Clear existing posts
-        querySnapshot.forEach((doc) => {
-          const post = doc.data();
-          const postElement = document.createElement('div');
-          postElement.classList.add('post');
-          postElement.innerHTML = `<p><strong>${post.username}:</strong> ${post.content}</p>`;
-          postFeed.appendChild(postElement);
-        });
-      }
-    }
-
-    // Initial display of posts
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        displayPosts();
-      } else {
-        window.location.href = 'index.html';
-      }
-    });
-  </script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
