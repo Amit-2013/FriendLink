@@ -1,7 +1,8 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+// Initialize Supabase
+const supabaseUrl = 'https://ykpkxjnwczkoyeduaath.supabase.co'; // Replace with your Supabase project URL
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrcGt4am53Y3prb3llZHVhYXRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc4NDEzNDIsImV4cCI6MjAzMzQxNzM0Mn0.yl0N6OwX5pOU7fE2-VCAqqfewg0e181YVbdewWd5_uo'; // Replace with your Supabase anon key
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Function to handle login
