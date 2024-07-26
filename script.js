@@ -38,8 +38,8 @@ async function handleLogin(event) {
 // Function to handle sign-up
 async function handleSignup(event) {
   event.preventDefault();
-  const email = document.getElementById('signup-email').value.trim();
-  const password = document.getElementById('signup-password').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
   try {
     await apiRequest('/signup', 'POST', { email, password });
     alert('Sign-up successful! Please log in.');
