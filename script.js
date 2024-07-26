@@ -68,7 +68,10 @@ async function loadPosts() {
     });
     if (!response.ok) throw new Error('Failed to load posts');
     const data = await response.json();
-    if (!Array.isArray(data)) throw new Error('Invalid data format');
+    if (!Array.isArray(data)) {
+      console.error('Invalid data format:', data);
+      throw new Error('Invalid data format');
+    }
     data.forEach((post) => {
       const postElement = document.createElement('div');
       postElement.className = 'post';
