@@ -1,10 +1,12 @@
+const API_URL = 'http://127.0.0.1:5000';  // Change this to your deployed backend URL when ready
+
 // Function to handle login
 document.getElementById('login-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
   try {
-    const response = await fetch('http://127.0.0.1:5000/login', {
+    const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -13,35 +15,15 @@ document.getElementById('login-form')?.addEventListener('submit', async (event) 
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message);
+    localStorage.setItem('token', data.access_token);
     alert('Login successful!');
-    localStorage.setItem('token', data.token);
     window.location.href = 'home.html';
   } catch (error) {
     document.getElementById('login-error').textContent = error.message;
   }
 });
 
-// Function to handle sign up
-document.getElementById('signup-form')?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
-  try {
-    const response = await fetch('http://127.0.0.1:5000/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message);
-    alert('Sign up successful! Please log in.');
-    window.location.href = 'index.html';
-  } catch (error) {
-    document.getElementById('signup-error').textContent = error.message;
-  }
-});
+// ... (keep signup function as it was) ...
 
 // Function to handle posts
 document.getElementById('post-form')?.addEventListener('submit', async (event) => {
@@ -50,7 +32,7 @@ document.getElementById('post-form')?.addEventListener('submit', async (event) =
   const token = localStorage.getItem('token');
   if (token) {
     try {
-      const response = await fetch('http://127.0.0.1:5000/posts', {
+      const response = await fetch(`${API_URL}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,8 +54,14 @@ document.getElementById('post-form')?.addEventListener('submit', async (event) =
 async function loadPosts() {
   const postsContainer = document.getElementById('posts');
   postsContainer.innerHTML = '';
+  const token = localStorage.getItem('token');
   try {
-    const response = await fetch('http://127.0.0.1:5000/posts');
+    const response = await fetch(`${API_URL}/posts`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to load posts');
     const posts = await response.json();
     posts.forEach((post) => {
       const postElement = document.createElement('div');
@@ -90,25 +78,26 @@ async function loadPosts() {
   }
 }
 
-document.getElementById('logout')?.addEventListener('click', () => {
-  localStorage.removeItem('token');
-  window.location.href = 'index.html';
-});
+// ... (keep logout function as it was) ...
 
 if (window.location.pathname.endsWith('home.html')) {
   const token = localStorage.getItem('token');
   if (token) {
-    fetch('http://127.0.0.1:5000/user', {
+    fetch(`${API_URL}/user`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to get user info');
+        return response.json();
+      })
       .then(data => {
         document.getElementById('user-info').textContent = `Logged in as: ${data.email}`;
         loadPosts();
       })
       .catch(() => {
+        localStorage.removeItem('token');
         window.location.href = 'index.html';
       });
   } else {
