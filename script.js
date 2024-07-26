@@ -1,30 +1,56 @@
 const API_URL = 'http://127.0.0.1:5000';
 
+// Utility function for making API requests
+async function apiRequest(endpoint, method = 'GET', body = null, token = null) {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : null,
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+  }
+  return data;
+}
+
 // Function to handle login
-document.getElementById('login-form')?.addEventListener('submit', async (event) => {
+async function handleLogin(event) {
   event.preventDefault();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
   try {
-    const response = await fetch(`${API_URL}/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Login failed');
+    const data = await apiRequest('/login', 'POST', { email, password });
     localStorage.setItem('token', data.access_token);
     alert('Login successful!');
     window.location.href = 'home.html';
   } catch (error) {
     document.getElementById('login-error').textContent = error.message;
   }
-});
+}
+
+// Function to handle sign-up
+async function handleSignup(event) {
+  event.preventDefault();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value.trim();
+  try {
+    await apiRequest('/signup', 'POST', { email, password });
+    alert('Sign-up successful! Please log in.');
+    window.location.href = 'index.html'; // Redirect to login page
+  } catch (error) {
+    document.getElementById('signup-error').textContent = error.message;
+  }
+}
 
 // Function to handle posts
-document.getElementById('post-form')?.addEventListener('submit', async (event) => {
+async function handlePost(event) {
   event.preventDefault();
   const content = document.getElementById('post-content').value.trim();
   const token = localStorage.getItem('token');
@@ -33,23 +59,14 @@ document.getElementById('post-form')?.addEventListener('submit', async (event) =
     return;
   }
   try {
-    const response = await fetch(`${API_URL}/posts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ content }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to create post');
+    await apiRequest('/posts', 'POST', { content }, token);
     document.getElementById('post-content').value = '';
     loadPosts();
   } catch (error) {
     console.error("Error adding post: ", error);
     alert(error.message);
   }
-});
+}
 
 // Function to load posts
 async function loadPosts() {
@@ -61,15 +78,8 @@ async function loadPosts() {
     return;
   }
   try {
-    const response = await fetch(`${API_URL}/posts`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) throw new Error('Failed to load posts');
-    const data = await response.json();
+    const data = await apiRequest('/posts', 'GET', null, token);
     if (!Array.isArray(data)) {
-      console.error('Invalid data format:', data);
       throw new Error('Invalid data format');
     }
     data.forEach((post) => {
@@ -88,29 +98,37 @@ async function loadPosts() {
   }
 }
 
-// Check login status and load user info
-if (window.location.pathname.endsWith('home.html')) {
+// Function to check login status and load user info
+async function checkLoginStatus() {
   const token = localStorage.getItem('token');
   if (token) {
-    fetch(`${API_URL}/user`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    })
-      .then(response => {
-        if (!response.ok) throw new Error('Failed to get user info');
-        return response.json();
-      })
-      .then(data => {
-        document.getElementById('user-info').textContent = `Logged in as: ${data.email}`;
-        loadPosts();
-      })
-      .catch((error) => {
-        console.error("Error fetching user info:", error);
-        localStorage.removeItem('token');
-        window.location.href = 'index.html';
-      });
+    try {
+      const data = await apiRequest('/user', 'GET', null, token);
+      document.getElementById('user-info').textContent = `Logged in as: ${data.email}`;
+      loadPosts();
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+      localStorage.removeItem('token');
+      window.location.href = 'index.html';
+    }
   } else {
     window.location.href = 'index.html';
   }
 }
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // Login form
+  document.getElementById('login-form')?.addEventListener('submit', handleLogin);
+
+  // Signup form
+  document.getElementById('signup-form')?.addEventListener('submit', handleSignup);
+
+  // Post form
+  document.getElementById('post-form')?.addEventListener('submit', handlePost);
+
+  // Check login status on home page
+  if (window.location.pathname.endsWith('home.html')) {
+    checkLoginStatus();
+  }
+});
