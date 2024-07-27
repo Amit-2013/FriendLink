@@ -68,6 +68,38 @@ async function handlePost(event) {
   }
 }
 
+// Function to handle likes
+async function handleLike(postId) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('You must be logged in to like posts.');
+    return;
+  }
+  try {
+    await apiRequest(`/posts/${postId}/like`, 'POST', null, token);
+    loadPosts(); // Reload posts to update like count
+  } catch (error) {
+    console.error("Error liking post: ", error);
+    alert(error.message);
+  }
+}
+
+// Function to handle following users
+async function handleFollow(userId) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('You must be logged in to follow users.');
+    return;
+  }
+  try {
+    await apiRequest(`/users/${userId}/follow`, 'POST', null, token);
+    loadPosts(); // Reload posts to update follow status
+  } catch (error) {
+    console.error("Error following user: ", error);
+    alert(error.message);
+  }
+}
+
 // Function to load posts
 async function loadPosts() {
   const postsContainer = document.getElementById('posts');
@@ -89,9 +121,22 @@ async function loadPosts() {
         <h3>${post.username}</h3>
         <p>${post.content}</p>
         <small>${new Date(post.created_at).toLocaleString()}</small>
+        <button class="like-btn" data-post-id="${post.id}">
+          <i data-feather="heart"></i> Like (${post.likes})
+        </button>
+        <button class="follow-btn" data-user-id="${post.user_id}">
+          ${post.is_following ? 'Unfollow' : 'Follow'}
+        </button>
       `;
       postsContainer.appendChild(postElement);
+      
+      // Add event listeners for like and follow buttons
+      postElement.querySelector('.like-btn').addEventListener('click', () => handleLike(post.id));
+      postElement.querySelector('.follow-btn').addEventListener('click', () => handleFollow(post.user_id));
     });
+    
+    // Initialize Feather icons
+    feather.replace();
   } catch (error) {
     console.error("Error loading posts: ", error);
     alert(error.message);
