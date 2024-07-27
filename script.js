@@ -146,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', handleLogin);
+  } else {
+    console.error('Login form not found');
   }
 
   // Signup form
