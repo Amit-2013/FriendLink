@@ -1,10 +1,11 @@
 const API_URL = 'http://127.0.0.1:5000';
 
 // Utility function for making API requests
-async function apiRequest(endpoint, method = 'GET', body = null, token = null) {
+async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = {
     'Content-Type': 'application/json',
   };
+  const token = localStorage.getItem('token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -23,23 +24,22 @@ async function apiRequest(endpoint, method = 'GET', body = null, token = null) {
 // Function to handle login
 async function handleLogin(event) {
   event.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value.trim();
   try {
     const data = await apiRequest('/login', 'POST', { email, password });
     localStorage.setItem('token', data.access_token);
-    alert('Login successful!');
     window.location.href = 'home.html';
   } catch (error) {
     document.getElementById('login-error').textContent = error.message;
   }
 }
 
-// handle signup
+// Function to handle sign-up
 async function handleSignup(event) {
   event.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value.trim();
   try {
     await apiRequest('/signup', 'POST', { email, password });
     alert('Sign-up successful! Please log in.');
@@ -53,13 +53,8 @@ async function handleSignup(event) {
 async function handlePost(event) {
   event.preventDefault();
   const content = document.getElementById('post-content').value.trim();
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('You must be logged in to post.');
-    return;
-  }
   try {
-    await apiRequest('/posts', 'POST', { content }, token);
+    await apiRequest('/posts', 'POST', { content });
     document.getElementById('post-content').value = '';
     loadPosts();
   } catch (error) {
@@ -70,13 +65,8 @@ async function handlePost(event) {
 
 // Function to handle likes
 async function handleLike(postId) {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('You must be logged in to like posts.');
-    return;
-  }
   try {
-    await apiRequest(`/posts/${postId}/like`, 'POST', null, token);
+    await apiRequest(`/posts/${postId}/like`, 'POST');
     loadPosts(); // Reload posts to update like count
   } catch (error) {
     console.error("Error liking post: ", error);
@@ -86,13 +76,8 @@ async function handleLike(postId) {
 
 // Function to handle following users
 async function handleFollow(userId) {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('You must be logged in to follow users.');
-    return;
-  }
   try {
-    await apiRequest(`/users/${userId}/follow`, 'POST', null, token);
+    await apiRequest(`/users/${userId}/follow`, 'POST');
     loadPosts(); // Reload posts to update follow status
   } catch (error) {
     console.error("Error following user: ", error);
@@ -104,17 +89,9 @@ async function handleFollow(userId) {
 async function loadPosts() {
   const postsContainer = document.getElementById('posts');
   postsContainer.innerHTML = '';
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error("No token found");
-    return;
-  }
   try {
-    const data = await apiRequest('/posts', 'GET', null, token);
-    if (!Array.isArray(data)) {
-      throw new Error('Invalid data format');
-    }
-    data.forEach((post) => {
+    const posts = await apiRequest('/posts');
+    posts.forEach((post) => {
       const postElement = document.createElement('div');
       postElement.className = 'post';
       postElement.innerHTML = `
@@ -122,21 +99,22 @@ async function loadPosts() {
         <p>${post.content}</p>
         <small>${new Date(post.created_at).toLocaleString()}</small>
         <button class="like-btn" data-post-id="${post.id}">
-          <i data-feather="heart"></i> Like (${post.likes})
+          ${post.is_liked ? 'Unlike' : 'Like'} (${post.likes})
         </button>
         <button class="follow-btn" data-user-id="${post.user_id}">
           ${post.is_following ? 'Unfollow' : 'Follow'}
         </button>
       `;
       postsContainer.appendChild(postElement);
-      
-      // Add event listeners for like and follow buttons
-      postElement.querySelector('.like-btn').addEventListener('click', () => handleLike(post.id));
-      postElement.querySelector('.follow-btn').addEventListener('click', () => handleFollow(post.user_id));
     });
-    
-    // Initialize Feather icons
-    feather.replace();
+
+    // Add event listeners for like and follow buttons
+    document.querySelectorAll('.like-btn').forEach(button => {
+      button.addEventListener('click', () => handleLike(button.dataset.postId));
+    });
+    document.querySelectorAll('.follow-btn').forEach(button => {
+      button.addEventListener('click', () => handleFollow(button.dataset.userId));
+    });
   } catch (error) {
     console.error("Error loading posts: ", error);
     alert(error.message);
@@ -145,32 +123,48 @@ async function loadPosts() {
 
 // Function to check login status and load user info
 async function checkLoginStatus() {
-  const token = localStorage.getItem('token');
-  if (token) {
-    try {
-      const data = await apiRequest('/user', 'GET', null, token);
-      document.getElementById('user-info').textContent = `Logged in as: ${data.email}`;
-      loadPosts();
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      localStorage.removeItem('token');
-      window.location.href = 'index.html';
-    }
-  } else {
+  try {
+    const user = await apiRequest('/user');
+    document.getElementById('user-info').textContent = `Logged in as: ${user.email}`;
+    loadPosts();
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    localStorage.removeItem('token');
     window.location.href = 'index.html';
   }
+}
+
+// Function to handle logout
+function handleLogout() {
+  localStorage.removeItem('token');
+  window.location.href = 'index.html';
 }
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
   // Login form
-  document.getElementById('login-form')?.addEventListener('submit', handleLogin);
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLogin);
+  }
 
   // Signup form
-  document.getElementById('signup-form')?.addEventListener('submit', handleSignup);
+  const signupForm = document.getElementById('signup-form');
+  if (signupForm) {
+    signupForm.addEventListener('submit', handleSignup);
+  }
 
   // Post form
-  document.getElementById('post-form')?.addEventListener('submit', handlePost);
+  const postForm = document.getElementById('post-form');
+  if (postForm) {
+    postForm.addEventListener('submit', handlePost);
+  }
+
+  // Logout button
+  const logoutButton = document.getElementById('logout');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', handleLogout);
+  }
 
   // Check login status on home page
   if (window.location.pathname.endsWith('home.html')) {
