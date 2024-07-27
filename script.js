@@ -35,7 +35,7 @@ async function handleLogin(event) {
   }
 }
 
-// Function to handle sign-up
+// handle signup
 async function handleSignup(event) {
   event.preventDefault();
   const email = document.getElementById('email').value.trim();
